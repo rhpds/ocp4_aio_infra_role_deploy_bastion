@@ -8,7 +8,7 @@
 
 - name: Deploy Bastion for SNO
   import_tasks: deploy_bastion_sno.yml
-  when: deploy_type == 'sno-iso'
+  when: deploy_type == 'sno'
 
 - name: Prepare Guacamole prereqs on bastion
   import_tasks: prep_guac.yml

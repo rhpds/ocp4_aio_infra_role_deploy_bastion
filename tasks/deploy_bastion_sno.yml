@@ -129,7 +129,7 @@
     src: services/dhcpd-sno.conf
     dest: /etc/dhcp/dhcpd.conf
     mode: 0644
-  when: deploy_type == "sno-iso"
+  when: deploy_type == "sno"
 
 - name: Copy over Squid config file
   ansible.builtin.copy:
@@ -142,7 +142,7 @@
     src: services/named-sno.conf
     dest: /etc/named.conf
     mode: 0644
-  when: deploy_type == "sno-iso"
+  when: deploy_type == "sno"
 
 - name: Copy over DNS zone files for SNO
   ansible.builtin.copy:
@@ -156,11 +156,11 @@
     - "services/edge3.example.com.db"
     - "services/edge4.example.com.db"
     - "services/123.168.192-sno.db"
-  when: deploy_type == "sno-iso"
+  when: deploy_type == "sno"
 
 - name: Rename DNS zone file for IPI
   ansible.builtin.command: mv /var/named/123.168.192-sno.db /var/named/123.168.192.db
-  when: deploy_type == "sno-iso"  
+  when: deploy_type == "sno"  
 
 - name: Make sure DHCPD leases file exists
   ansible.builtin.file:
