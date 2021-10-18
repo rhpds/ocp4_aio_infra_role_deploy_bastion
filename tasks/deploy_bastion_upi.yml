@@ -238,17 +238,17 @@
 
 - name: Get RHCOS version to use
   set_fact:
-    subversion: "{{ ocp_version.split('latest-')[1] if ('latest' in ocp_version) else ocp_version.split('.')[:2]|join('.') }}"
+    subversion: "{{ ocp4_aio_ocp_version.split('latest-')[1] if ('latest' in ocp4_aio_ocp_version) else ocp4_aio_ocp_version.split('.')[:2]|join('.') }}"
 
 - name: Download OpenShift Client
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}/openshift-client-linux.tar.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-client-linux.tar.gz
     dest: /root
     mode: 0644
 
 - name: Download OpenShift Installer
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}/openshift-install-linux.tar.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-install-linux.tar.gz
     dest: /root
     mode: 0644
 
