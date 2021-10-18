@@ -116,7 +116,7 @@
     permanent: yes
     state: enabled
     service: "tftp"
-  when: deploy_type == "upi"
+  when: ocp4_aio_deploy_type == "upi"
 
 - name: Enable extra Bastion ports in firewall
   firewalld:
@@ -180,8 +180,8 @@
     dest: /etc/haproxy/haproxy.cfg
     mode: 0644
   when:
-    - not deploy_compact
-    - deploy_type == "upi"
+    - not ocp4_aio_deploy_compact
+    - ocp4_aio_deploy_type == "upi"
 
 - name: Copy over haproxy config file for compact
   ansible.builtin.copy:
@@ -189,8 +189,8 @@
     dest: /etc/haproxy/haproxy.cfg
     mode: 0644
   when:
-    - deploy_compact or hostvars['localhost']['override_deploy_compact']
-    - deploy_type == "upi"
+    - ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
+    - ocp4_aio_deploy_type == "upi"
 
 - name: Make sure DHCPD leases file exists
   ansible.builtin.file:
@@ -241,7 +241,7 @@
     - "mv /var/www/html/rhcos-live-kernel-x86_64 /var/www/html/rhcos.kernel"
     - "mv /var/www/html/rhcos-live-initramfs.x86_64.img /var/www/html/rhcos.initramfs"
     - "mv /var/www/html/rhcos-live-rootfs.x86_64.img /var/www/html/rhcos.rootfs"
-  when: deploy_type == "upi"
+  when: ocp4_aio_deploy_type == "upi"
 
 - name: Reset permissions for /var/www/html
   ansible.builtin.file:

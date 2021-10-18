@@ -126,7 +126,7 @@
     src: services/dhcpd-ipi.conf
     dest: /etc/dhcp/dhcpd.conf
     mode: 0644
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 - name: Copy over Squid config file
   ansible.builtin.copy:
     src: services/squid.conf
@@ -147,11 +147,11 @@
   loop:
     - "services/aio.example.com-ipi.db"
     - "services/123.168.192.db"
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Rename DNS zone file for IPI
   ansible.builtin.command: mv /var/named/aio.example.com-ipi.db /var/named/aio.example.com.db
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Make sure DHCPD leases file exists
   ansible.builtin.file:
@@ -181,24 +181,24 @@
       - jq
       - ipmitool
     state: latest
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Enable Libvirtd for IPI
   ansible.builtin.systemd:
     name: libvirtd
     enabled: yes
     state: started
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Configure Libvirt Pool for IPI
   ansible.builtin.command: virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
   register: virsh_pool
   failed_when: virsh_pool.rc > 1
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Enable Libvirt Pool Autostart for IPI
   ansible.builtin.command: virsh pool-autostart default
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Configure Provisioning Bridge for IPI
   nmcli:
@@ -207,7 +207,7 @@
     ip4: 172.22.0.1/24
     gw4: 172.22.0.254
     state: present
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Add eth1 to Provisioning Bridge for IPI
   nmcli:
@@ -217,7 +217,7 @@
     hairpin: false
     master: provisioning
     state: present
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Configure Baremetal Bridge for IPI
   nmcli:
@@ -226,7 +226,7 @@
     ip4: 192.168.123.100/24
     gw4: 192.168.123.1
     state: present
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Add eth0 to Baremetal Bridge for IPI
   nmcli:
@@ -236,17 +236,17 @@
     hairpin: false
     master: baremetal
     state: present
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Ensure that provisioning bridge is never default-gw
   ansible.builtin.command: nmcli con modify provisioning ipv4.never-default yes
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Remove hardcoded ifcfg-eth0 for IPI
   ansible.builtin.file:
     path: /etc/sysconfig/network-scripts/ifcfg-eth0
     state: absent
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Rebooting Bastion VM
   reboot:
@@ -301,7 +301,7 @@
   ansible.builtin.copy:
     src: k8s/install-config-ipi.yaml
     dest: /root/lab/install-config.yaml
-  when: deploy_type == "ipi"
+  when: ocp4_aio_deploy_type == "ipi"
 
 - name: Grab contents of Bastions SSH public key
   ansible.builtin.command: cat /root/.ssh/id_rsa.pub
@@ -327,7 +327,7 @@
     regexp: '^(.*)replicas:(.*)$'
     replace: '  replicas: {{ ocp_workers }}'
     before: 'controlPlane'
-  when: not deploy_compact
+  when: not ocp4_aio_deploy_compact
 
 - name: Update compute replica count to 0 in install-config for compact
   ansible.builtin.replace:
@@ -335,7 +335,7 @@
     regexp: '^(.*)replicas:(.*)$'
     replace: '  replicas: 0'
     before: 'controlPlane'
-  when: deploy_compact or hostvars['localhost']['override_deploy_compact']
+  when: ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
 
 - name: Update compute replica count to 3 in install-config for OCS
   ansible.builtin.replace:
@@ -344,8 +344,8 @@
     replace: '  replicas: 3'
     before: 'controlPlane'
   when:
-    - deploy_ocs | bool
-    - not deploy_compact
+    - ocp4_aio_deploy_ocs | bool
+    - not ocp4_aio_deploy_compact
 
 - name: Remove workers from install-config if compact
   ansible.builtin.command:
@@ -355,15 +355,15 @@
     - "worker1"
     - "worker2"
     - "worker3"
-  when: deploy_compact or hostvars['localhost']['override_deploy_compact']
+  when: ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
 
 - name: Remove worker3 from install-config if ocp_workers is 2
   ansible.builtin.command:
     cmd: sed -i '/worker3/,+8d' /root/lab/install-config.yaml
     warn: false
   when:
-    - not deploy_ocs
-    - not deploy_compact
+    - not ocp4_aio_deploy_ocs
+    - not ocp4_aio_deploy_compact
     - ocp_workers == 2
 
 - name: Remove worker2 from install-config if ocp_workers is 1
@@ -374,8 +374,8 @@
     - "worker2"
     - "worker3"
   when:
-    - not deploy_ocs
-    - not deploy_compact
+    - not ocp4_aio_deploy_ocs
+    - not ocp4_aio_deploy_compact
     - ocp_workers == 1
 
 - name: Make sure we remove existing pull-secret
