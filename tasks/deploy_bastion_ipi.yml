@@ -319,7 +319,7 @@
     path: /root/lab/install-config.yaml
     regexp: '^pullSecret: '
     insertafter: '^#pullSecret: '
-    line: "pullSecret: '{{ pull_secret }}'"
+    line: "pullSecret: {{ pull_secret | to_json | to_json if pull_secret is mapping else pull_secret | to_json }}"
 
 - name: Update compute replica count to match ocp4_aio_ocp_workers requested
   ansible.builtin.replace:
@@ -378,16 +378,10 @@
     - not ocp4_aio_deploy_compact
     - ocp4_aio_ocp_workers == 1
 
-- name: Make sure we remove existing pull-secret
-  ansible.builtin.file:
-    path: /root/pull-secret.json
-    state: absent
-
 - name: Creating pull-secret file
-  ansible.builtin.lineinfile:
-    path: /root/pull-secret.json
-    line: "{{ pull_secret | string }}"
-    create: yes
+  ansible.builtin.copy:
+    dest: /root/pull-secret.json
+    content: "{{ pull_secret | to_json }}"
 
 - name: Make sure /etc/resolv.conf is writable
   ansible.builtin.file:
