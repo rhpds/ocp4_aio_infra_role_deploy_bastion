@@ -51,7 +51,7 @@
     mode: '0600'
     setype: _default
 
-- name: Delete existing VNC	configuration for root
+- name: Delete existing VNC configuration for root
   ansible.builtin.file:
     path: /etc/tigervnc/vncserver.users
     state: absent
