@@ -142,7 +142,7 @@
     src: services/named-sno.conf
     dest: /etc/named.conf
     mode: 0644
-  when: ocp4_aio_deploy_type == "sno"
+  when: not ocp4_aio_use_ddns
 
 - name: Copy over DNS zone files for SNO
   ansible.builtin.copy:
@@ -150,17 +150,51 @@
     dest: /var/named
     mode: 0644
   loop:
-    - "services/rhacm.example.com.db"
     - "services/edge1.example.com.db"
     - "services/edge2.example.com.db"
     - "services/edge3.example.com.db"
     - "services/edge4.example.com.db"
+  
+- name: Copy over DNS zone files for rhacm SNO
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /var/named
+    mode: 0644
+  loop: 
     - "services/123.168.192-sno.db"
-  when: ocp4_aio_deploy_type == "sno"
-
-- name: Rename DNS zone file for IPI
+    - "services/rhacm.example.com.db"
+  when: not ocp4_aio_use_ddns
+  
+- name: Rename DNS zone file for SNO
   ansible.builtin.command: mv /var/named/123.168.192-sno.db /var/named/123.168.192.db
-  when: ocp4_aio_deploy_type == "sno"  
+  when: not ocp4_aio_use_ddns  
+
+- when: ocp4_aio_use_ddns
+  name: temlate named config file
+  template:
+    src: "named-sno.conf.j2"
+    dest: /etc/named.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- when: ocp4_aio_use_ddns
+  name: Template reverse DNS zone file if using DDNS
+  template:
+    src: "123.168.192-sno.db.j2"
+    dest: "/var/named/123.168.192.db"
+    owner: root
+    group: root
+    mode: 0644
+
+- when: ocp4_aio_use_ddns
+  name: Template DNS zone file if using DDNS
+  template:
+    src: "myzone-sno.db.j2"
+    dest: "/var/named/{{ guid }}.{{ cluster_dns_zone }}.db"
+    owner: root
+    group: root
+    mode: 0644
 
 - name: Make sure DHCPD leases file exists
   ansible.builtin.file:

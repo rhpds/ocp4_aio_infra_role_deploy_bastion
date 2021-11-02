@@ -1,4 +1,4 @@
-@   IN  SOA     ocp4-bastion.aio.example.com. root.aio.example.com. (
+@   IN  SOA     dns.{{ cluster_dns_zone }}. dns.root.{{ cluster_dns_zone }}. (
                                                 1001    ;Serial
                                                 3H      ;Refresh
                                                 15M     ;Retry
@@ -7,13 +7,13 @@
                                                 )
 
 ;Name Server Information
-@ IN  NS      ocp4-bastion.aio.example.com.
+@ IN  NS      dns.{{ cluster_dns_zone }}.
 
 ;Reverse lookup for Name Server
-100      IN  PTR     ocp4-bastion.aio.example.com.
+100      IN  PTR     dns.{{ cluster_dns_zone }}.
 
 ;PTR Record IP address to HostName
-10       IN  PTR     sno-master1.rhacm.example.com.
+10       IN  PTR     sno-master1.{{ guid}}.{{ cluster_dns_zone }}.
 20       IN  PTR     sno-master1.edge1.example.com.
 30       IN  PTR     sno-master1.edge2.example.com.
 40       IN  PTR     sno-master1.edge3.example.com.
