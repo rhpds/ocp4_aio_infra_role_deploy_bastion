@@ -42,11 +42,13 @@
       - python3-virtualenv
       - podman
     state: latest
+    skip_broken: true
 
 - name: Upgrade all packages
   dnf:
     name: "*"
     state: latest
+    skip_broken: true
 
 - name: Create SSH keypair
   openssh_keypair:
@@ -416,7 +418,7 @@
 - name: Creating pull-secret file
   ansible.builtin.copy:
     dest: /root/pull-secret.json
-    content: "{{ pull_secret | to_json }}"
+    content: "{{ pull_secret | to_json | to_json if pull_secret is mapping else pull_secret | to_json }}"
 
 - name: Make sure /etc/resolv.conf is writable
   ansible.builtin.file:
