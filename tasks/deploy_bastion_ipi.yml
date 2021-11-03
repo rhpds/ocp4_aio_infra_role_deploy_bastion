@@ -42,13 +42,13 @@
       - python3-virtualenv
       - podman
     state: latest
-    skip_broken: true
+    skip_broken: yes
 
 - name: Upgrade all packages
   dnf:
     name: "*"
     state: latest
-    skip_broken: true
+    skip_broken: yes
 
 - name: Create SSH keypair
   openssh_keypair:
