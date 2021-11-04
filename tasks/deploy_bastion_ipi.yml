@@ -416,9 +416,9 @@
     - ocp4_aio_ocp_workers == 1
 
 - name: Creating pull-secret file
-  ansible.builtin.copy:
+  template:
+    src: pull-secret.json.j2
     dest: /root/pull-secret.json
-    content: "{{ pull_secret | to_json | to_json if pull_secret is mapping else pull_secret | to_json }}"
 
 - name: Make sure /etc/resolv.conf is writable
   ansible.builtin.file:
