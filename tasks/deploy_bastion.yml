@@ -210,12 +210,20 @@
     url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-client-linux.tar.gz
     dest: /root
     mode: 0644
+  retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
+  delay: "{{ ocp4_aio_infra_role_deploy_bastion_delay }}"
+  register: r_get_url
+  until: r_get_url is succeeded
 
 - name: Download OpenShift Installer
   ansible.builtin.get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-install-linux.tar.gz
     dest: /root
     mode: 0644
+  retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
+  delay: "{{ ocp4_aio_infra_role_deploy_bastion_delay }}"
+  register: r_get_url
+  until: r_get_url is succeeded
 
 - name: Unpack OpenShift Client & Installer
   ansible.builtin.unarchive:
