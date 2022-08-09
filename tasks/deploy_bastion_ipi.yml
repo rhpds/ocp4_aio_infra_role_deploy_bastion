@@ -237,6 +237,7 @@
     conn_name: provisioning
     ip4: 172.22.0.1/24
     gw4: 172.22.0.254
+    addr_gen_mode6: eui64
     state: present
   when: ocp4_aio_deploy_type == "ipi"
 
@@ -256,6 +257,7 @@
     conn_name: baremetal
     ip4: 192.168.123.100/24
     gw4: 192.168.123.1
+    addr_gen_mode6: eui64
     state: present
   when: ocp4_aio_deploy_type == "ipi"
 
