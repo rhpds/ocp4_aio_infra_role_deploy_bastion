@@ -231,13 +231,26 @@
   ansible.builtin.command: virsh pool-autostart default
   when: ocp4_aio_deploy_type == "ipi"
 
+- name: Set NetworkManager ipv6 default addr gen mode
+  blockinfile:
+    path: /etc/NetworkManager/NetworkManager.conf
+    block: |
+      [connection]
+      ipv6.addr-gen-mode=eui64
+  when: ocp4_aio_deploy_type == "ipi"
+
+- name: Restart NetworkManager to apply new default
+  ansible.builtin.service:
+    name: NetworkManager
+    state: restarted
+  when: ocp4_aio_deploy_type == "ipi"
+
 - name: Configure Provisioning Bridge for IPI
   nmcli:
     type: bridge
     conn_name: provisioning
     ip4: 172.22.0.1/24
     gw4: 172.22.0.254
-    addr_gen_mode6: eui64
     state: present
   when: ocp4_aio_deploy_type == "ipi"
 
@@ -257,7 +270,6 @@
     conn_name: baremetal
     ip4: 192.168.123.100/24
     gw4: 192.168.123.1
-    addr_gen_mode6: eui64
     state: present
   when: ocp4_aio_deploy_type == "ipi"
 
