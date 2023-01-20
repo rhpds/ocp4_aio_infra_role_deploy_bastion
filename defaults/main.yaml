@@ -1,3 +1,5 @@
 ---
 ocp4_aio_infra_role_deploy_bastion_retries: 10
 ocp4_aio_infra_role_deploy_bastion_delay: 30
+cloud_provider: none
+baremetal_provider: none
