@@ -43,7 +43,7 @@ options {
 
 	pid-file "/run/named/named.pid";
 	session-keyfile "/run/named/session.key";
-	response-policy { zone "rpz"; };
+//	response-policy { zone "rpz"; };
 };
 
 logging {
@@ -70,10 +70,12 @@ zone "123.168.192.in-addr.arpa" IN {
           allow-update { none; };
 };
 
+/* 
 zone "rpz" {
           type master;
           file "rpz.db";
 };
+*/
 
 include "/etc/named.rfc1912.zones";
 include "/etc/named.root.key";
