@@ -1,4 +1,4 @@
-@   IN  SOA     dns.{{ cluster_dns_zone }}. dns.root.{{ cluster_dns_zone }}.  (
+@   IN  SOA     dns.example.com. dns.root.example.com.  (
                                                 1001    ;Serial
                                                 3H      ;Refresh
                                                 15M     ;Retry
@@ -7,17 +7,17 @@
                                                 )
 
 ;Name Server Information
-@ IN  NS      dns.{{ cluster_dns_zone }}.
+@ IN  NS      dns.example.com.
 
 ;Reverse lookup for Name Server
-100      IN  PTR     dns.{{ cluster_dns_zone }}.
+100      IN  PTR     dns.example.com.
 
 ;PTR Record IP address to HostName
-99	     IN  PTR     ocp4-bootstrap.{{ guid}}.{{ cluster_dns_zone }}.
-101      IN  PTR     ocp4-master1.{{ guid}}.{{ cluster_dns_zone }}.
-102      IN  PTR     ocp4-master2.{{ guid}}.{{ cluster_dns_zone }}.
-103      IN  PTR     ocp4-master3.{{ guid}}.{{ cluster_dns_zone }}.
-104      IN  PTR     ocp4-worker1.{{ guid}}.{{ cluster_dns_zone }}.
-105      IN  PTR     ocp4-worker2.{{ guid}}.{{ cluster_dns_zone }}.
-106      IN  PTR     ocp4-worker3.{{ guid}}.{{ cluster_dns_zone }}.
+99	     IN  PTR     ocp4-bootstrap.ocp.example.com.
+101      IN  PTR     ocp4-master1.ocp.example.com.
+102      IN  PTR     ocp4-master2.ocp.example.com.
+103      IN  PTR     ocp4-master3.ocp.example.com.
+104      IN  PTR     ocp4-worker1.ocp.example.com.
+105      IN  PTR     ocp4-worker2.ocp.example.com.
+106      IN  PTR     ocp4-worker3.ocp.example.com.
 
