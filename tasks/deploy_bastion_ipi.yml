@@ -182,7 +182,7 @@
   name: Template DNS zone file if using DDNS
   template:
     src: "myzone-ipi.db.j2"
-    dest: "/var/named/{{ guid }}.{{ cluster_dns_zone }}.db"
+    dest: "/var/named/ocp.example.com.db"
     owner: root
     group: root
     mode: 0644

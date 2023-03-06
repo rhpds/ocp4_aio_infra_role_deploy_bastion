@@ -57,9 +57,9 @@ zone "." IN {
 	file "named.ca";
 };
 
-zone "{{ guid }}.{{ cluster_dns_zone }}" IN {
+zone "ocp.example.com" IN {
          type master;
-         file "{{ guid }}.{{ cluster_dns_zone }}.db";
+         file "ocp.example.com.db";
          allow-update { none; };
 };
 
