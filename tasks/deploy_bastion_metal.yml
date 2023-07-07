@@ -25,7 +25,6 @@
       - jq
       - git
       - httpd
-      - squid
       - dhcp-server
       - xinetd
       - net-tools
@@ -79,13 +78,6 @@
     - rpc-bind
     - nfs
 
-- name: Enable Squid in firewall if no DDNS
-  firewalld:
-    permanent: yes
-    state: enabled
-    service: squid
-  when: not ocp4_aio_use_ddns 
-
 - name: Enable extra Bastion ports in firewall
   firewalld:
     permanent: yes
@@ -135,13 +127,6 @@
     src: services/dhcpd-ipi.conf
     dest: /etc/dhcp/dhcpd.conf
     mode: 0644
-
-- name: Copy over Squid config file
-  ansible.builtin.copy:
-    src: services/squid.conf
-    dest: /etc/squid/squid.conf
-    mode: 0644
-  when: not ocp4_aio_use_ddns 
 
 - name: Copy over named config file
   ansible.builtin.copy:
@@ -217,13 +202,6 @@
     - dhcpd
     - rpcbind
     - nfs-server
-
-- name: Enable Squid proxy When no DDNS is present
-  ansible.builtin.systemd:
-    name: squid
-    enabled: yes
-    state: started
-  when: not ocp4_aio_use_ddns 
 
 - name: Install IPI-specific base packages
   dnf:
