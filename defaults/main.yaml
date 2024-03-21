@@ -4,3 +4,4 @@ ocp4_aio_infra_role_deploy_bastion_delay: 30
 cloud_provider: none
 baremetal_provider: none
 ocp4_aio_network_type: OVNKubernetes
+ocp4_aio_ocp_version: 4.15.3
