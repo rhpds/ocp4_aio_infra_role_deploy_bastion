@@ -146,7 +146,7 @@
     - "services/aio.example.com-ipi.db"
     - "services/123.168.192.db"
     - "services/rpz.db"
-  when: not ocp4_aio_use_ddns 
+  when: not ocp4_aio_use_ddns
 
 - when: ocp4_aio_use_ddns
   name: temlate named config file
@@ -182,7 +182,7 @@
     mode: 0644
   loop:
     - "services/rpz.db"
-  when: ocp4_aio_use_ddns 
+  when: ocp4_aio_use_ddns
 
 - name: Rename DNS zone file for IPI
   ansible.builtin.command: mv /var/named/aio.example.com-ipi.db /var/named/aio.example.com.db
@@ -412,7 +412,7 @@
 - name: Remove workers from install-config if compact
   ansible.builtin.command:
     cmd: sed -i '/{{ item }}/,+8d' /root/lab/install-config.yaml
-    warn: false
+    # warn: false # no longer supported in ansible 2.14
   loop:
     - "worker1"
     - "worker2"
@@ -422,7 +422,7 @@
 - name: Remove worker3 from install-config if ocp4_aio_ocp_workers is 2
   ansible.builtin.command:
     cmd: sed -i '/worker3/,+8d' /root/lab/install-config.yaml
-    warn: false
+    # warn: false # no longer supported in ansible 2.14
   when:
     - not ocp4_aio_deploy_ocs
     - not ocp4_aio_deploy_compact
@@ -431,7 +431,7 @@
 - name: Remove worker2 from install-config if ocp4_aio_ocp_workers is 1
   ansible.builtin.command:
     cmd: sed -i '/{{ item }}/,+8d' /root/lab/install-config.yaml
-    warn: false
+    # warn: false # no longer supported in ansible 2.14
   loop:
     - "worker2"
     - "worker3"
@@ -461,4 +461,3 @@
       nameserver 192.168.123.100
     create: yes
     attributes: +i
-
