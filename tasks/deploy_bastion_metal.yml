@@ -40,6 +40,8 @@
       - firewalld
       - python3-virtualenv
       - podman
+      - vim
+      - bind-utils
     state: latest
     skip_broken: yes
 
