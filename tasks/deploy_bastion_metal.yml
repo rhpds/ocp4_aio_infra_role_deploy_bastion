@@ -1,6 +1,6 @@
 
 - name: Wait for Bastion machine to start
-  wait_for_connection:
+  ansible.builtin.wait_for_connection:
     timeout: 120
   register: result
   until: result is succeeded
@@ -19,78 +19,78 @@
     name: ocp4-bastion.aio.example.com
 
 - name: Install required base packages
-  dnf:
+  ansible.builtin.dnf:
     name:
-      - qemu-img
-      - jq
-      - git
-      - httpd
-      - dhcp-server
-      - xinetd
-      - net-tools
-      - nano
-      - bind
-      - bind-utils
-      - haproxy
-      - wget
-      - syslinux
-      - libvirt-libs
-      - tftp-server
-      - syslinux-tftpboot
-      - firewalld
-      - python3-virtualenv
-      - podman
-      - vim
-      - bind-utils
+    - qemu-img
+    - jq
+    - git
+    - httpd
+    - dhcp-server
+    - xinetd
+    - net-tools
+    - nano
+    - bind
+    - bind-utils
+    - haproxy
+    - wget
+    - syslinux
+    - libvirt-libs
+    - tftp-server
+    - syslinux-tftpboot
+    - firewalld
+    - python3-virtualenv
+    - podman
+    - vim
+    - bind-utils
     state: latest
-    skip_broken: yes
+    skip_broken: true
 
 - name: Upgrade all packages
-  dnf:
+  ansible.builtin.dnf:
     name: "*"
     state: latest
-    skip_broken: yes
+    skip_broken: true
 
 - name: Create SSH keypair
-  openssh_keypair:
+  community.crypto.openssh_keypair:
     path: "~/.ssh/id_rsa"
     type: rsa
     size: 4096
     state: present
-    force: no
+    force: false
 
 - name: Enable Firewalld
   ansible.builtin.systemd:
     name: firewalld
-    enabled: yes
+    enabled: true
     state: started
 
 - name: Enable Bastion services in firewall
-  firewalld:
-    permanent: yes
+  ansible.posix.firewalld:
+    permanent: true
     state: enabled
     service: "{{ item }}"
   loop:
-    - dhcp
-    - dns
-    - http
-    - https
-    - nfs3
-    - mountd
-    - rpc-bind
-    - nfs
+  - dhcp
+  - dns
+  - http
+  - https
+  - nfs3
+  - mountd
+  - rpc-bind
+  - nfs
 
 - name: Enable extra Bastion ports in firewall
-  firewalld:
-    permanent: yes
+  ansible.posix.firewalld:
+    permanent: true
     state: enabled
     port: "{{ item }}"
   loop:
-    - "6443/tcp"
-    - "8443/tcp"
-    - "9001/tcp"
-    - "22623/tcp"
-    - "81/tcp"
+  - "6443/tcp"
+  - "8443/tcp"
+  - "9001/tcp"
+  - "22623/tcp"
+  - "81/tcp"
 
 - name: Reload Firewalld
   ansible.builtin.command: firewall-cmd --reload
@@ -98,24 +98,25 @@
   failed_when: firewalld_return.rc > 0
 
 - name: Make NFS PV and TFTPboot directories
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: 0777
-    recurse: yes
+    mode: "0777"
+    recurse: true
   loop:
-    - "/nfs/pv1"
-    - "/nfs/pv2"
-    - "/nfs/pv3"
-    - "/nfs/pv4"
-    - "/nfs/pv5"
-    - "/var/lib/tftpboot/pxelinux/pxelinux.cfg/"
+  - "/nfs/pv1"
+  - "/nfs/pv2"
+  - "/nfs/pv3"
+  - "/nfs/pv4"
+  - "/nfs/pv5"
+  - "/var/lib/tftpboot/pxelinux/pxelinux.cfg/"
 
 - name: Setting up NFS config
   ansible.builtin.lineinfile:
     path: /etc/exports
     line: /nfs *(rw,no_root_squash)
-    create: yes
+    create: true
+    mode: "0664"
 
 - name: Setting up HTTPD config
   ansible.builtin.lineinfile:
@@ -128,187 +129,177 @@
   ansible.builtin.copy:
     src: services/dhcpd-ipi.conf
     dest: /etc/dhcp/dhcpd.conf
-    mode: 0644
+    mode: "0644"
 
 - name: Copy over named config file
+  when: not ocp4_aio_use_ddns
   ansible.builtin.copy:
     src: services/named-metal.conf
     dest: /etc/named.conf
-    mode: 0644
-  when: not ocp4_aio_use_ddns
+    mode: "0644"
 
 - name: Copy over DNS zone files for IPI
+  when: not ocp4_aio_use_ddns
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: /var/named
-    mode: 0644
+    mode: "0644"
   loop:
-    - "services/aio.example.com-ipi.db"
-    - "services/123.168.192.db"
-    - "services/rpz.db"
-  when: not ocp4_aio_use_ddns
+  - "services/aio.example.com-ipi.db"
+  - "services/123.168.192.db"
+  - "services/rpz.db"
 
-- when: ocp4_aio_use_ddns
-  name: temlate named config file
-  template:
+- name: Template named config file
+  when: ocp4_aio_use_ddns
+  ansible.builtin.template:
     src: "named-metal.conf.j2"
     dest: /etc/named.conf
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
-- when: ocp4_aio_use_ddns
-  name: Template reverse DNS zone file if using DDNS
-  template:
+- name: Template reverse DNS zone file if using DDNS
+  when: ocp4_aio_use_ddns
+  ansible.builtin.template:
     src: "123.168.192.db.j2"
     dest: "/var/named/123.168.192.db"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
-- when: ocp4_aio_use_ddns
-  name: Template DNS zone file if using DDNS
-  template:
+- name: Template DNS zone file if using DDNS
+  when: ocp4_aio_use_ddns
+  ansible.builtin.template:
     src: "myzone-ipi.db.j2"
     dest: "/var/named/ocp.example.com.db"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Copy over workaround DNS zone files for IPI
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: /var/named
-    mode: 0644
-  loop:
-    - "services/rpz.db"
   when: ocp4_aio_use_ddns
+  ansible.builtin.copy:
+    src: "services/rpz.db"
+    dest: /var/named
+    mode: "0644"
 
 - name: Rename DNS zone file for IPI
-  ansible.builtin.command: mv /var/named/aio.example.com-ipi.db /var/named/aio.example.com.db
   when: not ocp4_aio_use_ddns
+  ansible.builtin.command: mv /var/named/aio.example.com-ipi.db /var/named/aio.example.com.db
 
 - name: Make sure DHCPD leases file exists
   ansible.builtin.file:
     path: /var/lib/dhcpd/dhcpd.leases
     state: touch
+    mode: "0664"
 
 - name: Enable Bastion Services
   ansible.builtin.systemd:
     name: "{{ item }}"
-    enabled: yes
+    enabled: true
     state: started
   loop:
-    - httpd
-    - named
-    - dhcpd
-    - rpcbind
-    - nfs-server
+  - httpd
+  - named
+  - dhcpd
+  - rpcbind
+  - nfs-server
 
-- name: Install IPI-specific base packages
-  dnf:
-    name:
+- name: Configure for IPI
+  when: ocp4_aio_deploy_type == "ipi"
+  block:
+  - name: Install IPI-specific base packages
+    ansible.builtin.dnf:
+      name:
       - libvirt
       - qemu-kvm
       - mkisofs
       - python3-devel
       - jq
       - ipmitool
-    state: latest
-  when: ocp4_aio_deploy_type == "ipi"
+      state: latest
 
-- name: Enable Libvirtd for IPI
-  ansible.builtin.systemd:
-    name: libvirtd
-    enabled: yes
-    state: started
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Enable Libvirtd for IPI
+    ansible.builtin.systemd:
+      name: libvirtd
+      enabled: true
+      state: started
 
-- name: Configure Libvirt Pool for IPI
-  ansible.builtin.command: virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
-  register: virsh_pool
-  failed_when: virsh_pool.rc > 1
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Configure Libvirt Pool for IPI
+    ansible.builtin.command: virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
+    register: virsh_pool
+    failed_when: virsh_pool.rc > 1
 
-- name: Enable Libvirt Pool Autostart for IPI
-  ansible.builtin.command: virsh pool-autostart default
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Enable Libvirt Pool Autostart for IPI
+    ansible.builtin.command: virsh pool-autostart default
 
-- name: Set NetworkManager ipv6 default addr gen mode
-  blockinfile:
-    path: /etc/NetworkManager/NetworkManager.conf
-    block: |
-      [connection]
-      ipv6.addr-gen-mode=eui64
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Set NetworkManager ipv6 default addr gen mode
+    ansible.builtin.blockinfile:
+      path: /etc/NetworkManager/NetworkManager.conf
+      block: |
+        [connection]
+        ipv6.addr-gen-mode=eui64
 
-- name: Restart NetworkManager to apply new default
-  ansible.builtin.service:
-    name: NetworkManager
-    state: restarted
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Restart NetworkManager to apply new default
+    ansible.builtin.service:
+      name: NetworkManager
+      state: restarted
 
-- name: Configure Provisioning Bridge for IPI
-  nmcli:
-    type: bridge
-    conn_name: provisioning
-    ip4: 172.22.0.1/24
-    gw4: 172.22.0.254
-    state: present
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Configure Provisioning Bridge for IPI
+    community.general.nmcli:
+      type: bridge
+      conn_name: provisioning
+      ip4: 172.22.0.1/24
+      gw4: 172.22.0.254
+      state: present
 
-- name: Add eth1 to Provisioning Bridge for IPI
-  nmcli:
-    type: bridge-slave
-    conn_name: eth1
-    ifname: eth1
-    hairpin: false
-    master: provisioning
-    state: present
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Add eth1 to Provisioning Bridge for IPI
+    community.general.nmcli:
+      type: bridge-slave
+      conn_name: eth1
+      ifname: eth1
+      hairpin: false
+      master: provisioning
+      state: present
 
-- name: Configure Baremetal Bridge for IPI
-  nmcli:
-    type: bridge
-    conn_name: baremetal
-    ip4: 192.168.123.100/24
-    gw4: 192.168.123.1
-    state: present
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Configure Baremetal Bridge for IPI
+    community.general.nmcli:
+      type: bridge
+      conn_name: baremetal
+      ip4: 192.168.123.100/24
+      gw4: 192.168.123.1
+      state: present
 
-- name: Add eth0 to Baremetal Bridge for IPI
-  nmcli:
-    type: bridge-slave
-    conn_name: eth0
-    ifname: eth0
-    hairpin: false
-    master: baremetal
-    state: present
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Add eth0 to Baremetal Bridge for IPI
+    community.general.nmcli:
+      type: bridge-slave
+      conn_name: eth0
+      ifname: eth0
+      hairpin: false
+      master: baremetal
+      state: present
 
-- name: Ensure that provisioning bridge is never default-gw
-  ansible.builtin.command: nmcli con modify provisioning ipv4.never-default yes
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Ensure that provisioning bridge is never default-gw
+    ansible.builtin.command: nmcli con modify provisioning ipv4.never-default yes
 
-- name: Remove hardcoded ifcfg-eth0 for IPI
-  ansible.builtin.file:
-    path: /etc/sysconfig/network-scripts/ifcfg-eth0
-    state: absent
-  when: ocp4_aio_deploy_type == "ipi"
+  - name: Remove hardcoded ifcfg-eth0 for IPI
+    ansible.builtin.file:
+      path: /etc/sysconfig/network-scripts/ifcfg-eth0
+      state: absent
 
 - name: Rebooting Bastion VM
-  reboot:
+  ansible.builtin.reboot:
     reboot_timeout: 600
 
 - name: Get RHCOS version to use
-  set_fact:
+  ansible.builtin.set_fact:
     subversion: "{{ ocp4_aio_ocp_version.split('latest-')[1] if ('latest' in ocp4_aio_ocp_version) else ocp4_aio_ocp_version.split('.')[:2]|join('.') }}"
 
 - name: Download OpenShift Client
   ansible.builtin.get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-client-linux.tar.gz
     dest: /root
-    mode: 0644
+    mode: "0644"
   retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
   delay: "{{ ocp4_aio_infra_role_deploy_bastion_delay }}"
   register: r_get_url
@@ -318,7 +309,7 @@
   ansible.builtin.get_url:
     url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-install-linux.tar.gz
     dest: /root
-    mode: 0644
+    mode: "0644"
   retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
   delay: "{{ ocp4_aio_infra_role_deploy_bastion_delay }}"
   register: r_get_url
@@ -326,44 +317,51 @@
 
 - name: Unpack OpenShift Client & Installer
   ansible.builtin.unarchive:
-    remote_src: yes
+    remote_src: true
     src: "{{ item }}"
     dest: /usr/bin
   loop:
-    - "/root/openshift-install-linux.tar.gz"
-    - "/root/openshift-client-linux.tar.gz"
+  - "/root/openshift-install-linux.tar.gz"
+  - "/root/openshift-client-linux.tar.gz"
+
+- name: Create OpenShift Bash completion file
+  become: true
+  ansible.builtin.shell: /usr/bin/oc completion bash >/etc/bash_completion.d/openshift
 
 - name: Remove OpenShift client and installer tarballs
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
-    - "/root/openshift-install-linux.tar.gz"
-    - "/root/openshift-client-linux.tar.gz"
+  - "/root/openshift-install-linux.tar.gz"
+  - "/root/openshift-client-linux.tar.gz"
 
 - name: Reset permissions for /var/www/html
   ansible.builtin.file:
     path: /var/www/html
-    recurse: yes
-    mode: '0755'
+    recurse: true
+    mode: "0755"
     setype: _default
 
 - name: Make lab directory on bastion
   ansible.builtin.file:
     path: /root/lab
     state: directory
+    mode: "0775"
 
 - name: Copy install-config over to bastion for IPI
+  when: not ocp4_aio_use_ddns
   ansible.builtin.copy:
     src: k8s/install-config-ipi.yaml
     dest: /root/lab/install-config.yaml
-  when: not ocp4_aio_use_ddns
+    mode: "0664"
 
-- when: ocp4_aio_use_ddns
-  name: templating install-config for IPI
-  template:
+- name: Template install-config for IPI
+  when: ocp4_aio_use_ddns
+  ansible.builtin.template:
     src: install-config-ipi.yaml.j2
     dest: /root/lab/install-config.yaml
+    mode: "0664"
 
 - name: Grab contents of Bastions SSH public key
   ansible.builtin.command: cat /root/.ssh/id_rsa.pub
@@ -384,66 +382,67 @@
     line: "pullSecret: {{ pull_secret | to_json | to_json if pull_secret is mapping else pull_secret | to_json }}"
 
 - name: Update compute replica count to match ocp4_aio_ocp_workers requested
+  when: not ocp4_aio_deploy_compact
   ansible.builtin.replace:
     path: /root/lab/install-config.yaml
     regexp: '^(.*)replicas:(.*)$'
     replace: '  replicas: {{ ocp4_aio_ocp_workers }}'
     before: 'controlPlane'
-  when: not ocp4_aio_deploy_compact
 
 - name: Update compute replica count to 0 in install-config for compact
+  when: ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
   ansible.builtin.replace:
     path: /root/lab/install-config.yaml
     regexp: '^(.*)replicas:(.*)$'
     replace: '  replicas: 0'
     before: 'controlPlane'
-  when: ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
 
 - name: Update compute replica count to 3 in install-config for OCS
+  when:
+  - ocp4_aio_deploy_ocs | bool
+  - not ocp4_aio_deploy_compact | bool
   ansible.builtin.replace:
     path: /root/lab/install-config.yaml
     regexp: '^(.*)replicas:(.*)$'
     replace: '  replicas: 3'
     before: 'controlPlane'
-  when:
-    - ocp4_aio_deploy_ocs | bool
-    - not ocp4_aio_deploy_compact
 
 - name: Remove workers from install-config if compact
+  when: ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
   ansible.builtin.command:
     cmd: sed -i '/{{ item }}/,+8d' /root/lab/install-config.yaml
     # warn: false # no longer supported in ansible 2.14
   loop:
-    - "worker1"
-    - "worker2"
-    - "worker3"
-  when: ocp4_aio_deploy_compact or hostvars['localhost']['override_deploy_compact']
+  - "worker1"
+  - "worker2"
+  - "worker3"
 
 - name: Remove worker3 from install-config if ocp4_aio_ocp_workers is 2
+  when:
+  - not ocp4_aio_deploy_ocs | bool
+  - not ocp4_aio_deploy_compact | bool
+  - ocp4_aio_ocp_workers == 2
   ansible.builtin.command:
     cmd: sed -i '/worker3/,+8d' /root/lab/install-config.yaml
     # warn: false # no longer supported in ansible 2.14
-  when:
-    - not ocp4_aio_deploy_ocs
-    - not ocp4_aio_deploy_compact
-    - ocp4_aio_ocp_workers == 2
 
 - name: Remove worker2 from install-config if ocp4_aio_ocp_workers is 1
+  when:
+  - not ocp4_aio_deploy_ocs | bool
+  - not ocp4_aio_deploy_compact | bool
+  - ocp4_aio_ocp_workers == 1
   ansible.builtin.command:
     cmd: sed -i '/{{ item }}/,+8d' /root/lab/install-config.yaml
     # warn: false # no longer supported in ansible 2.14
   loop:
-    - "worker2"
-    - "worker3"
-  when:
-    - not ocp4_aio_deploy_ocs
-    - not ocp4_aio_deploy_compact
-    - ocp4_aio_ocp_workers == 1
+  - "worker2"
+  - "worker3"
 
-- name: Creating pull-secret file
-  template:
+- name: Create pull-secret file
+  ansible.builtin.template:
     src: pull-secret.json.j2
     dest: /root/pull-secret.json
+    mode: "0664"
 
 - name: Make sure /etc/resolv.conf is writable
   ansible.builtin.file:
@@ -451,7 +450,8 @@
     attributes: -i
 
 - name: Clear out existing /etc/resolv.conf contents
-  ansible.builtin.command: truncate -s 0 /etc/resolv.conf
+  ansible.builtin.command:
+    cmd: truncate -s 0 /etc/resolv.conf
 
 - name: Ensuring /etc/resolv.conf is setup for local DNS
   ansible.builtin.blockinfile:
@@ -459,5 +459,6 @@
     block: |
       search aio.example.com
       nameserver 192.168.123.100
-    create: yes
+    create: true
+    mode: "0664"
     attributes: +i

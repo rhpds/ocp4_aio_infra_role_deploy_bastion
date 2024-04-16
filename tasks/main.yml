@@ -1,6 +1,6 @@
 
 - name: Deploy Bastion for Equinix Metal
-  import_tasks: deploy_bastion_metal.yml
-  when: 
-    - ocp4_aio_deploy_type == 'ipi'
-    - baremetal_provider == 'packet' or cloud_provider == 'equinix_metal'
+  when:
+  - ocp4_aio_deploy_type == 'ipi'
+  - baremetal_provider == 'packet' or cloud_provider == 'equinix_metal'
+  ansible.builtin.import_tasks: deploy_bastion_metal.yml
