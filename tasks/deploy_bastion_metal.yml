@@ -18,6 +18,12 @@
   ansible.builtin.hostname:
     name: ocp4-bastion.aio.example.com
 
+- name: Update Repos to working mirrors...
+  ansible.builtin.command:
+    chdir: /etc/yum.repos.d
+    cmd: |
+      sed -i -e 's/mirror\./vault./' -e 's/^mirrorlist/#mirrorlist/' -e 's/^#baseurl/baseurl/' *.repo
+
 - name: Install required base packages
   dnf:
     name:
