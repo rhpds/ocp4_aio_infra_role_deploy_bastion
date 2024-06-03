@@ -1,4 +1,3 @@
-
 - name: Wait for Bastion machine to start
   wait_for_connection:
     timeout: 120
@@ -45,17 +44,9 @@
     - syslinux-tftpboot
     - firewalld
     - podman
-    state: latest
-    skip_broken: true
-
-- name: Install additional required base packages
-  ansible.builtin.dnf:
-    name:
-    - xinetd
     - python3-virtualenv
     state: latest
     skip_broken: true
-  ignore_errors: true
 
 - name: Upgrade all packages
   dnf:
