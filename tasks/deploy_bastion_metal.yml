@@ -24,6 +24,11 @@
     disable_gpg_check: true
   become: true
 
+- name: Ensure the crb repository is enabled
+  community.general.dnf_config_manager:
+    name: crb
+    state: enabled
+
 - name: Install required base packages
   ansible.builtin.dnf:
     name:
