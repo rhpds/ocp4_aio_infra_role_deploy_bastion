@@ -201,7 +201,7 @@
 
 - name: Download OpenShift Installer
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-install-linux.tar.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.16/openshift-install-linux.tar.gz
     dest: /root
     mode: 0644
   retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
