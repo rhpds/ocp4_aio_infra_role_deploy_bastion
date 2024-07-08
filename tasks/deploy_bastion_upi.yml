@@ -236,13 +236,9 @@
   reboot:
     reboot_timeout: 600
 
-- name: Get RHCOS version to use
-  set_fact:
-    subversion: "{{ ocp4_aio_ocp_version.split('latest-')[1] if ('latest' in ocp4_aio_ocp_version) else ocp4_aio_ocp_version.split('.')[:2]|join('.') }}"
-
 - name: Download OpenShift Client
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-client-linux.tar.gz
+    url: http://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.16/openshift-client-linux-amd64-rhel8.tar.gz
     dest: /root
     mode: 0644
   retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
@@ -252,7 +248,7 @@
 
 - name: Download OpenShift Installer
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp4_aio_ocp_version }}/openshift-install-linux.tar.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.16/openshift-install-linux.tar.gz
     dest: /root
     mode: 0644
   retries: "{{ ocp4_aio_infra_role_deploy_bastion_retries }}"
@@ -262,7 +258,7 @@
 
 - name: Download RHCOS RAMDISK
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ subversion }}/latest/rhcos-live-initramfs.x86_64.img
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.16/latest/rhcos-live-initramfs.x86_64.img
     dest: /var/www/html
     mode: 0644
   when: ocp4_aio_deploy_type == "upi"
@@ -273,7 +269,7 @@
 
 - name: Download RHCOS Kernel
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ subversion }}/latest/rhcos-live-kernel-x86_64
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.16/latest/rhcos-live-kernel-x86_64
     dest: /var/www/html
     mode: 0644
   when: ocp4_aio_deploy_type == "upi"
@@ -284,7 +280,7 @@
 
 - name: Download RHCOS RAW Disk image
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ subversion }}/latest/rhcos-metal.x86_64.raw.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.16/latest/rhcos-metal.x86_64.raw.gz
     dest: /var/www/html
     mode: 0644
   when: ocp4_aio_deploy_type == "upi"
@@ -295,7 +291,7 @@
 
 - name: Download RHCOS Live RootFS
   ansible.builtin.get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{ subversion }}/latest/rhcos-live-rootfs.x86_64.img
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.16/latest/rhcos-live-rootfs.x86_64.img
     dest: /var/www/html
     mode: 0644
   when: ocp4_aio_deploy_type == "upi"
